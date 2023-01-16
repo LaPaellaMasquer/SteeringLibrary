@@ -26,7 +26,7 @@ void ASteer::Tick(float DeltaTime)
 }
 
 
-FVector ASteer::Seek(const FVector& position, FVector velocity, const FVector& target) {
+FVector ASteer::Seek(const FVector& position, const FVector& target) {
 	FVector res = target - position;
 	res.Normalize();
 	res -= velocity;
@@ -34,7 +34,7 @@ FVector ASteer::Seek(const FVector& position, FVector velocity, const FVector& t
 	return res;
 }
 
-FVector ASteer::Flee(const FVector& position, FVector velocity, const FVector& target) {
+FVector ASteer::Flee(const FVector& position, const FVector& target) {
 	FVector res = (target - position) * -1;
 	res.Normalize();
 	res -= velocity;
@@ -42,7 +42,30 @@ FVector ASteer::Flee(const FVector& position, FVector velocity, const FVector& t
 	return res;
 }
 
-FVector ASteer::Arrival(const FVector& position, FVector velocity, const double slowing_d, const FVector& target) {
+
+FVector ASteer::Pursuit(const FVector& position, const FVector& target, const FVector& velocity_target) {
+	FVector d = target - position;
+	FVector unit_forward = velocity;
+	unit_forward.Normalize();
+	FVector unit_forward_target = velocity_target;
+	unit_forward_target.Normalize();
+	double t = FVector::DotProduct(unit_forward, unit_forward_target) * FVector::DotProduct(velocity_target, d);
+	
+	return Seek(position, target + velocity_target * t);
+}
+
+FVector ASteer::Evasion(const FVector& position, const FVector& target, const FVector& velocity_target) {
+	FVector d = target - position;
+	FVector unit_forward = velocity;
+	unit_forward.Normalize();
+	FVector unit_forward_target = velocity_target;
+	unit_forward_target.Normalize();
+	double t = FVector::DotProduct(unit_forward, unit_forward_target) * FVector::DotProduct(velocity_target, d);
+
+	return Flee(position, target + velocity_target * t);
+}
+
+FVector ASteer::Arrival(const FVector& position, const double slowing_d, const FVector& target) {
 	FVector res = target - position;
 	double d = res.Length();
 	double ramped_speed = max_speed * (d / slowing_d);

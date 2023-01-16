@@ -12,7 +12,16 @@ class STEERING_API ASteer : public AActor
 	GENERATED_BODY()
 	
 private:
-	double max_speed;
+	float mass;
+	FVector position;
+	FVector velocity;
+	FMatrix orientation;
+	float max_force;
+	float max_speed;
+
+	FVector Truncate(const FVector& v, double m) {
+		return (m * v) / v.Length();
+	}
 
 public:	
 	// Sets default values for this actor's properties
@@ -28,11 +37,15 @@ public:
 
 
 
-	FVector Seek(const FVector& position, FVector velocity, const FVector& target);
+	FVector Seek(const FVector& position, const FVector& target);
 
-	FVector Flee(const FVector& position, FVector velocity, const FVector& target);
+	FVector Flee(const FVector& position, const FVector& target);
 
-	FVector Arrival(const FVector& position, FVector velocity, const double slowing_d, const FVector& target);
+	FVector Pursuit(const FVector& position, const FVector& target, const FVector& velocity_target);
+
+	FVector Evasion(const FVector& position, const FVector& target, const FVector& velocity_target);
+
+	FVector Arrival(const FVector& position, const double slowing_d, const FVector& target);
 
 
 };
