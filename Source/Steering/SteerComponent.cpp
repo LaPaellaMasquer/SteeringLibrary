@@ -18,7 +18,7 @@ USteerComponent::USteerComponent()
 void USteerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// ...
 	
 }
@@ -36,12 +36,19 @@ FVector USteerComponent::Truncate(FVector v, float m) {
 	return (m * v) / v.Length();
 }
 
+FVector USteerComponent::Compute(FVector pos, FVector steering) {
+	FVector acceleration = Truncate(steering, max_force) / mass;
+	velocity = Truncate(velocity + acceleration, max_speed);
+
+	return pos + velocity;
+}
+
 FVector USteerComponent::Seek(const FVector& position, const FVector& target) {
 	FVector res = target - position;
 	res.Normalize();
 	res -= velocity;
 
-	return res;
+	return Compute(position, res);
 }
 
 FVector USteerComponent::Flee(const FVector& position, const FVector& target) {
@@ -49,7 +56,7 @@ FVector USteerComponent::Flee(const FVector& position, const FVector& target) {
 	res.Normalize();
 	res -= velocity;
 
-	return res;
+	return Compute(position, res);
 }
 
 
@@ -82,16 +89,9 @@ FVector USteerComponent::Arrival(const FVector& position, const double slowing_d
 	res *= FMath::Min(ramped_speed, max_speed) / d;
 	res -= velocity;
 
-	return res;
+	return Compute(position, res);
 }
 
 inline FVector USteerComponent::GetVelocity(){
 	return velocity;
-}
-
-FVector USteerComponent::Compute(FVector pos, FVector steering) {
-	FVector acceleration =  Truncate(steering, max_force) / mass;
-	velocity = Truncate(velocity + acceleration, max_speed);
-
-	return pos + velocity;
 }

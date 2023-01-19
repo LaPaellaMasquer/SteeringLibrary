@@ -7,13 +7,14 @@
 #include "SteerComponent.h"
 #include "SteerPawn.generated.h"
 
-UCLASS()
+UCLASS(Blueprintable)
 class STEERING_API ASteerPawn : public APawn
 {
 	GENERATED_BODY()
 
 public:
-	USteerComponent steercomp;
+	UPROPERTY(EditAnywhere)
+	USteerComponent *steerComp;
 
 	// Sets default values for this pawn's properties
 	ASteerPawn();
@@ -28,5 +29,23 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UFUNCTION(BlueprintCallable)
+	void Seek(const FVector& target);
+
+	UFUNCTION(BlueprintCallable)
+	void Flee(const FVector& target);
+
+	UFUNCTION(BlueprintCallable)
+	void Pursuit(const FVector& target, const FVector& velocity_target);
+
+	UFUNCTION(BlueprintCallable)
+	void Evasion( const FVector& target, const FVector& velocity_target);
+
+	UFUNCTION(BlueprintCallable)
+	void Arrival(const double slowing_d, const FVector& target);
+
+	UFUNCTION(BlueprintCallable)
+	inline FVector GetSteerVelocity();
 
 };
