@@ -10,6 +10,8 @@ USteerComponent::USteerComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
+	velocity = FVector::ZeroVector;
+
 	// ...
 }
 
@@ -18,7 +20,6 @@ USteerComponent::USteerComponent()
 void USteerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 	// ...
 	
 }
@@ -33,22 +34,25 @@ void USteerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 }
 
 FVector USteerComponent::Truncate(FVector v, float m) {
+	if (v.Length() == 0.0) {
+		return v;
+	}
 	return (m * v) / v.Length();
 }
 
 FVector USteerComponent::Compute(FVector pos, FVector steering) {
 	FVector acceleration = Truncate(steering, max_force) / mass;
 	velocity = Truncate(velocity + acceleration, max_speed);
-
+	
 	return pos + velocity;
 }
 
 FVector USteerComponent::Seek(const FVector& position, const FVector& target) {
 	FVector res = target - position;
 	res.Normalize();
-	res -= velocity;
+	res = res - velocity;
 
-	return Compute(position, res);
+	return (mass == 0.0) ? target : Compute(position, res);
 }
 
 FVector USteerComponent::Flee(const FVector& position, const FVector& target) {
@@ -56,7 +60,7 @@ FVector USteerComponent::Flee(const FVector& position, const FVector& target) {
 	res.Normalize();
 	res -= velocity;
 
-	return Compute(position, res);
+	return (mass == 0.0) ? target : Compute(position, res);
 }
 
 
@@ -89,7 +93,7 @@ FVector USteerComponent::Arrival(const FVector& position, const double slowing_d
 	res *= FMath::Min(ramped_speed, max_speed) / d;
 	res -= velocity;
 
-	return Compute(position, res);
+	return (mass == 0.0) ? target : Compute(position, res);
 }
 
 inline FVector USteerComponent::GetVelocity(){
