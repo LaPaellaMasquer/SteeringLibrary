@@ -12,6 +12,14 @@ class STEERING_API ASteerPawn : public APawn
 {
 	GENERATED_BODY()
 
+private:
+	enum State {IDLE, SEEK, FLEE, ARRIVAL, PURSUIT, EVASION, LOOP, ROUND};
+	State state; 
+	FVector target;
+	FVector velocity_target;
+	float slowing_d;
+	APawn* follow_target;
+
 public:
 	UPROPERTY(EditAnywhere)
 	USteerComponent *steerComp;
@@ -31,19 +39,19 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION(BlueprintCallable)
-	void Seek(const FVector& target);
+	void Seek(const FVector& pos);
 
 	UFUNCTION(BlueprintCallable)
-	void Flee(const FVector& target);
+	void Flee(const FVector& pos);
 
 	UFUNCTION(BlueprintCallable)
-	void Pursuit(const FVector& target, const FVector& velocity_target);
+	void Arrival(const double slowing_d, const FVector& pos);
 
 	UFUNCTION(BlueprintCallable)
-	void Evasion( const FVector& target, const FVector& velocity_target);
+	void Pursuit(APawn* follow);
 
 	UFUNCTION(BlueprintCallable)
-	void Arrival(const double slowing_d, const FVector& target);
+	void Evasion(APawn* follow);
 
 	UFUNCTION(BlueprintCallable)
 	inline FVector GetSteerVelocity();
