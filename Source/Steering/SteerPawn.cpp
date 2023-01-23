@@ -11,21 +11,20 @@ ASteerPawn::ASteerPawn()
 	steerComp = CreateDefaultSubobject<USteerComponent>("SteerComponent");
 	AddOwnedComponent(steerComp);
 	state = IDLE;
-
+	curr_checkpoint = NAN;
 }
 
 // Called when the game starts or when spawned
 void ASteerPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
 void ASteerPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	double d;
 	switch (state)
 	{
 	case SEEK:
@@ -42,6 +41,54 @@ void ASteerPawn::Tick(float DeltaTime)
 		break;
 	case EVASION:
 		SetActorLocation(steerComp->Evasion(GetActorLocation(), follow_target->GetActorLocation(), follow_target->GetVelocity()), false);
+		break;
+	case LOOP:
+		d = (checkpoints[curr_checkpoint]->GetActorLocation() - GetActorLocation()).Length();
+		if (d <= SWITCH_DISTANCE) {
+			++index_order;
+			if (index_order == order.Num()) {
+				index_order = 0;
+			}
+			curr_checkpoint = order[index_order];
+		}
+		SetActorLocation(steerComp->Seek(GetActorLocation(), checkpoints[curr_checkpoint]->GetActorLocation()), false);
+		break;
+	case FORWARD:
+		d = (checkpoints[curr_checkpoint]->GetActorLocation() - GetActorLocation()).Length();
+		if (d <= SWITCH_DISTANCE) {
+			++index_order;
+			if (index_order == order.Num()) {
+				index_order -= 2;
+				state = BACKWARD;
+			}
+			curr_checkpoint = order[index_order];
+		}
+		SetActorLocation(steerComp->Seek(GetActorLocation(), checkpoints[curr_checkpoint]->GetActorLocation()), false);
+		break;
+	case BACKWARD:
+		d = (checkpoints[curr_checkpoint]->GetActorLocation() - GetActorLocation()).Length();
+		if (d <= SWITCH_DISTANCE) {
+			--index_order;
+			if (index_order == -1) {
+				index_order += 2;
+				state = FORWARD;
+			}
+			curr_checkpoint = order[index_order];
+		}
+		SetActorLocation(steerComp->Seek(GetActorLocation(), checkpoints[curr_checkpoint]->GetActorLocation()), false);
+		break;
+	case PATH:
+		d = (checkpoints[curr_checkpoint]->GetActorLocation() - GetActorLocation()).Length();
+		if (d <= SWITCH_DISTANCE) {
+			++index_order;
+			if (index_order == order.Num()) {
+				--index_order;
+				state = IDLE;
+				break;
+			}
+			curr_checkpoint = order[index_order];
+		}
+		SetActorLocation(steerComp->Seek(GetActorLocation(), checkpoints[curr_checkpoint]->GetActorLocation()), false);
 		break;
 	default:
 		break;
@@ -80,7 +127,31 @@ void ASteerPawn::Evasion(APawn* follow) {
 	follow_target = follow;
 }
 
-inline FVector ASteerPawn::GetSteerVelocity() {
+void ASteerPawn::Circuit() {
+	state = LOOP;
+	if (curr_checkpoint == NAN) {
+		curr_checkpoint = order[0];
+		index_order = 0;
+	}
+}
+
+void ASteerPawn::OneWay() {
+	state = PATH;
+	if (curr_checkpoint == NAN) {
+		curr_checkpoint = order[0];
+		index_order = 0;
+	}
+}
+
+void ASteerPawn::TwoWay() {
+	state = FORWARD;
+	if (curr_checkpoint == NAN) {
+		curr_checkpoint = order[0];
+		index_order = 0;
+	}
+}
+
+FVector ASteerPawn::GetVelocity() const {
 	return steerComp->GetVelocity();
 }
 

@@ -13,16 +13,25 @@ class STEERING_API ASteerPawn : public APawn
 	GENERATED_BODY()
 
 private:
-	enum State {IDLE, SEEK, FLEE, ARRIVAL, PURSUIT, EVASION, LOOP, ROUND};
+	enum State {IDLE, SEEK, FLEE, ARRIVAL, PURSUIT, EVASION, LOOP, FORWARD, BACKWARD, PATH};
+	const double SWITCH_DISTANCE = 1;
+
 	State state; 
 	FVector target;
-	FVector velocity_target;
 	float slowing_d;
 	APawn* follow_target;
+	int curr_checkpoint;
+	int index_order;
 
 public:
 	UPROPERTY(EditAnywhere)
 	USteerComponent *steerComp;
+
+	UPROPERTY(EditAnywhere)
+	TArray<AActor*> checkpoints;
+
+	UPROPERTY(EditAnywhere)
+	TArray<int> order;
 
 	// Sets default values for this pawn's properties
 	ASteerPawn();
@@ -54,6 +63,14 @@ public:
 	void Evasion(APawn* follow);
 
 	UFUNCTION(BlueprintCallable)
-	inline FVector GetSteerVelocity();
+	void Circuit();
+
+	UFUNCTION(BlueprintCallable)
+	void OneWay();
+
+	UFUNCTION(BlueprintCallable)
+	void TwoWay();
+
+	virtual FVector GetVelocity() const override;
 
 };

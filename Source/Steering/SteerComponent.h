@@ -56,5 +56,5 @@ public:
 	FVector Arrival(const FVector& position, const double slowing_d, const FVector& target);
 
 	UFUNCTION(BlueprintCallable)
-	inline FVector GetVelocity();
+	inline FVector GetVelocity() const;
 };

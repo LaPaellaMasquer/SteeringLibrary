@@ -96,6 +96,6 @@ FVector USteerComponent::Arrival(const FVector& position, const double slowing_d
 	return (mass == 0.0) ? target : Compute(position, res);
 }
 
-inline FVector USteerComponent::GetVelocity(){
+inline FVector USteerComponent::GetVelocity() const{
 	return velocity;
 }
