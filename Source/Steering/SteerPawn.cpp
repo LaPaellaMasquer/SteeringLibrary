@@ -11,7 +11,7 @@ ASteerPawn::ASteerPawn()
 	steerComp = CreateDefaultSubobject<USteerComponent>("SteerComponent");
 	AddOwnedComponent(steerComp);
 	state = IDLE;
-	curr_checkpoint = NAN;
+	curr_checkpoint = -1;
 }
 
 // Called when the game starts or when spawned
@@ -129,7 +129,7 @@ void ASteerPawn::Evasion(APawn* follow) {
 
 void ASteerPawn::Circuit() {
 	state = LOOP;
-	if (curr_checkpoint == NAN) {
+	if (curr_checkpoint == -1) {
 		curr_checkpoint = order[0];
 		index_order = 0;
 	}
@@ -137,7 +137,7 @@ void ASteerPawn::Circuit() {
 
 void ASteerPawn::OneWay() {
 	state = PATH;
-	if (curr_checkpoint == NAN) {
+	if (curr_checkpoint == -1) {
 		curr_checkpoint = order[0];
 		index_order = 0;
 	}
@@ -145,7 +145,7 @@ void ASteerPawn::OneWay() {
 
 void ASteerPawn::TwoWay() {
 	state = FORWARD;
-	if (curr_checkpoint == NAN) {
+	if (curr_checkpoint == -1) {
 		curr_checkpoint = order[0];
 		index_order = 0;
 	}

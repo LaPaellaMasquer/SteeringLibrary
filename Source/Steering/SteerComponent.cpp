@@ -48,19 +48,27 @@ FVector USteerComponent::Compute(FVector pos, FVector steering) {
 }
 
 FVector USteerComponent::Seek(const FVector& position, const FVector& target) {
+	if (mass == 0.0) {
+		return target;
+	}
+
 	FVector res = target - position;
 	res.Normalize();
-	res = res - velocity;
+	res = res * max_speed - velocity;
 
-	return (mass == 0.0) ? target : Compute(position, res);
+	return Compute(position, res);
 }
 
 FVector USteerComponent::Flee(const FVector& position, const FVector& target) {
-	FVector res = (target - position) * -1;
-	res.Normalize();
-	res -= velocity;
+	if (mass == 0.0) {
+		return target;
+	}
 
-	return (mass == 0.0) ? target : Compute(position, res);
+	FVector res = position - target;
+	res.Normalize();
+	res = res * max_speed - velocity;
+
+	return Compute(position, res);
 }
 
 
@@ -87,13 +95,17 @@ FVector USteerComponent::Evasion(const FVector& position, const FVector& target,
 }
 
 FVector USteerComponent::Arrival(const FVector& position, const double slowing_d, const FVector& target) {
+	if (mass == 0.0) {
+		return target;
+	}
+
 	FVector res = target - position;
 	double d = res.Length();
 	double ramped_speed = max_speed * (d / slowing_d);
 	res *= FMath::Min(ramped_speed, max_speed) / d;
 	res -= velocity;
 
-	return (mass == 0.0) ? target : Compute(position, res);
+	return Compute(position, res);
 }
 
 inline FVector USteerComponent::GetVelocity() const{
