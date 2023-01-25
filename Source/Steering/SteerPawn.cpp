@@ -35,6 +35,7 @@ void ASteerPawn::Tick(float DeltaTime)
 		break;
 	case ARRIVAL:
 		SetActorLocation(steerComp->Arrival(GetActorLocation(), slowing_d, target), false);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("%s"), *steerComp->GetVelocity().ToString()));
 		break;
 	case PURSUIT:
 		SetActorLocation(steerComp->Pursuit(GetActorLocation(), follow_target->GetActorLocation(), follow_target->GetVelocity()), false);
@@ -94,6 +95,14 @@ void ASteerPawn::Tick(float DeltaTime)
 		break;
 	}
 
+	if (state != IDLE && steerComp->GetVelocity() != FVector::ZeroVector) {
+		FVector new_forward = steerComp->GetVelocity();
+		new_forward.Normalize();
+		FVector new_side = FVector::CrossProduct(new_forward, GetActorUpVector());
+		FVector new_up = FVector::CrossProduct(new_forward, new_side);
+
+		SetActorRotation(new_forward.Rotation());
+	}
 }
 
 // Called to bind functionality to input
