@@ -164,5 +164,27 @@ FVector ASteerPawn::GetVelocity() const {
 	return steerComp->GetVelocity();
 }
 
+float ASteerPawn::GetMass() const {
+	return steerComp->mass;
+}
 
+void ASteerPawn::SetMass(float m) {
+	steerComp->mass = m;
+}
+
+float ASteerPawn::GetForce() const {
+	return steerComp->max_force;
+}
+
+void ASteerPawn::SetForce(float f) {
+	steerComp->max_force = f;
+}
+
+float ASteerPawn::GetSpeed() const {
+	return steerComp->max_speed;
+}
+
+void ASteerPawn::SetSpeed(float s) {
+	steerComp->max_speed = s;
+}
 

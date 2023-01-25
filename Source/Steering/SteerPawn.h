@@ -73,4 +73,21 @@ public:
 
 	virtual FVector GetVelocity() const override;
 
+	UFUNCTION(BlueprintCallable)
+	float GetMass() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetMass(float m) ;
+
+	UFUNCTION(BlueprintCallable)
+	float GetForce() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetForce(float f) ;
+
+	UFUNCTION(BlueprintCallable)
+	float GetSpeed() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetSpeed(float s) ;
 };
