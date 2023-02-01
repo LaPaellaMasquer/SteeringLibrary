@@ -34,12 +34,13 @@ void USteerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 }
 
 FVector USteerComponent::Truncate(FVector v, float m) {
-	if (v.Length() == 0.0) {
+	if (v.Length() == 0.0 || v.Length() < m) {
 		return v;
 	}
 	return (m * v) / v.Length();
 }
 
+// compute the new position
 FVector USteerComponent::Compute(FVector pos, FVector steering) {
 	FVector acceleration = Truncate(steering, max_force) / mass;
 	velocity = Truncate(velocity + acceleration, max_speed);
@@ -54,7 +55,7 @@ FVector USteerComponent::Seek(const FVector& position, const FVector& target) {
 
 	FVector res = target - position;
 	res.Normalize();
-	res = res * max_speed - velocity;
+	res = res * max_speed - velocity; // steering = desired_velocity - velocity
 
 	return Compute(position, res);
 }
@@ -66,7 +67,7 @@ FVector USteerComponent::Flee(const FVector& position, const FVector& target) {
 
 	FVector res = position - target;
 	res.Normalize();
-	res = res * max_speed - velocity;
+	res = res * max_speed - velocity; // steering = desired_velocity - velocity
 
 	return Compute(position, res);
 }
@@ -78,7 +79,7 @@ FVector USteerComponent::Pursuit(const FVector& position, const FVector& target,
 	unit_forward.Normalize();
 	FVector unit_forward_target = velocity_target;
 	unit_forward_target.Normalize();
-	double t = FVector::DotProduct(unit_forward, unit_forward_target) * FVector::DotProduct(velocity_target, d);
+	double t = FVector::DotProduct(unit_forward, unit_forward_target) * FVector::DotProduct(velocity_target, d); // d*c
 
 	return Seek(position, target + velocity_target * t);
 }
@@ -89,7 +90,7 @@ FVector USteerComponent::Evasion(const FVector& position, const FVector& target,
 	unit_forward.Normalize();
 	FVector unit_forward_target = velocity_target;
 	unit_forward_target.Normalize();
-	double t = FVector::DotProduct(unit_forward, unit_forward_target) * FVector::DotProduct(velocity_target, d);
+	double t = FVector::DotProduct(unit_forward, unit_forward_target) * FVector::DotProduct(velocity_target, d); // d*c
 
 	return Flee(position, target + velocity_target * t);
 }
@@ -99,11 +100,16 @@ FVector USteerComponent::Arrival(const FVector& position, const double slowing_d
 		return target;
 	}
 
-	FVector res = target - position;
+	FVector res = target - position; // target_offset
 	double d = res.Length();
+	if (d == 0.0) {
+		velocity = FVector::ZeroVector;
+		return position;
+	}
+
 	double ramped_speed = max_speed * (d / slowing_d);
-	res *= FMath::Min(ramped_speed, max_speed) / d;
-	res -= velocity;
+	res *= FMath::Min(ramped_speed, max_speed) / d; // desired_velocity = (clamped_speed / distance) * target_offset
+	res -= velocity; // steering = desired_velocity - velocity
 
 	return Compute(position, res);
 }
