@@ -44,7 +44,7 @@ FVector USteerComponent::Truncate(FVector v, float m) {
 FVector USteerComponent::Compute(FVector pos, FVector steering) {
 	FVector acceleration = Truncate(steering, max_force) / mass;
 	velocity = Truncate(velocity + acceleration, max_speed);
-	
+
 	return pos + velocity;
 }
 

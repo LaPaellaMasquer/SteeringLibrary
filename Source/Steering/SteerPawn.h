@@ -16,9 +16,9 @@ private:
 	enum State {IDLE, SEEK, FLEE, ARRIVAL, PURSUIT, EVASION, LOOP, FORWARD, BACKWARD, PATH};
 	const double SWITCH_DISTANCE = 1;
 
-	State state; 
-	FVector target;
+	State state;
 	float slowing_d;
+	FVector target;
 	APawn* follow_target;
 	int curr_checkpoint;
 	int index_order;
@@ -54,7 +54,7 @@ public:
 	void Flee(const FVector& pos);
 
 	UFUNCTION(BlueprintCallable)
-	void Arrival(const double slowing_d, const FVector& pos);
+	void Arrival(const FVector& pos);
 
 	UFUNCTION(BlueprintCallable)
 	void Pursuit(APawn* follow);
@@ -90,4 +90,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetSpeed(float s) ;
+
+	UFUNCTION(BlueprintCallable)
+	float GetSlowingDistance() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetSlowingDistance(float d);
 };

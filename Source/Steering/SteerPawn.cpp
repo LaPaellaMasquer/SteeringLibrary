@@ -12,6 +12,7 @@ ASteerPawn::ASteerPawn()
 	AddOwnedComponent(steerComp);
 	state = IDLE;
 	curr_checkpoint = -1;
+	slowing_d = 100;
 }
 
 // Called when the game starts or when spawned
@@ -94,7 +95,7 @@ void ASteerPawn::Tick(float DeltaTime)
 		break;
 	}
 
-	if (state != IDLE && steerComp->GetVelocity() != FVector::ZeroVector) {
+	if (state != IDLE && !steerComp->GetVelocity().Equals(FVector::ZeroVector, 0.1)) {
 		FVector new_forward = steerComp->GetVelocity();
 		new_forward.Normalize();
 		SetActorRotation(new_forward.Rotation());
@@ -116,10 +117,9 @@ void ASteerPawn::Flee(const FVector& pos) {
 	state = FLEE;
 	target = pos;
 }
-void ASteerPawn::Arrival(const double slowing_dist, const FVector& pos) {
+void ASteerPawn::Arrival(const FVector& pos) {
 	state = ARRIVAL;
 	target = pos;
-	slowing_d = slowing_dist;
 }
 
 void ASteerPawn::Pursuit(APawn* follow) {
@@ -184,3 +184,10 @@ void ASteerPawn::SetSpeed(float s) {
 	steerComp->max_speed = s;
 }
 
+float ASteerPawn::GetSlowingDistance() const {
+	return slowing_d;
+}
+
+void ASteerPawn::SetSlowingDistance(float d) {
+	slowing_d = d;
+}
