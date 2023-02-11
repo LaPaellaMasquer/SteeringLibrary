@@ -1,7 +1,7 @@
 # MPIA Roussel Alan
 
 ###Installation
-Open project with Unreal Engine 5.0.3 and use Visual Studio Community 2022 to open the scripts.
+Open Steering.sln with Visual Studio Community 2022 to open the scripts to run and compile the project use Run Debug Windows Local.
 
 ###Controls
 
