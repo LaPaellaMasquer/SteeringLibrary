@@ -33,3 +33,45 @@ void AMazePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
+TArray<ANodeGraph*> AMazePawn::A_Star(ANodeGraph* goal) {
+	TArray<ANodeGraph*> nextNodes;
+	nextNodes.add(graph);
+
+	TMap<NodeGraph*, double> distances;
+	distances[graph] = 0;
+
+	TMap<NodeGraph*, NodeGraph*> path;
+	TArray<ANodeGraph*> res;
+
+	while (nextNodes.Num()!=0) {
+		NodeGraph* current;
+		// get the node with the minimum distances
+		for (auto& e : distances) {
+			current = e.Key;
+			break;
+		}
+
+		if (current == goal) {
+			res.add(current);
+			for (NodeGraph* n : path) {
+				res.Insert(n, 0);
+			}
+			return res;
+		}
+
+		nextNodes.Remmove(current);
+
+		for (NodeGraph* n : current->Neighbours) {
+			distance = distances[current] + (n->GetActorLocation() - current->GetActorLocation()).Length();
+			if (!distances.Contains(n) || (distances.Contains(n) && distance < disances[n])) {
+				distances[n] = distance
+					path[n] = current;
+			}
+			distancesValueSort([](const double& A, const double& B) {
+				return A < B;
+			});
+			nextNodes.addUUnique(n);
+		}
+	}
+	return res;
+}

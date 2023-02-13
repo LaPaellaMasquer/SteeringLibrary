@@ -13,6 +13,8 @@ class STEERING_API AMazePawn : public APawn
 {
 	GENERATED_BODY()
 
+	TArray<ANodeGraph*> A_Star(ANodeGraph* goal);
+	
 public:
 	UPROPERTY(EditAnywhere)
 	USteerComponent* steerComp;
@@ -34,4 +36,5 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void MoveToNode(ANodeGraph* goal);
 };
