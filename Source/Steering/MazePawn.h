@@ -17,10 +17,12 @@ private:
 
 	enum State { IDLE, PATH };
 	State state;
+
 	TArray<ANodeGraph*> circuit;
 	int index;
+	TArray<TArray<ANodeGraph*>> queue;
 
-	TArray<ANodeGraph*> A_Star(ANodeGraph* goal);
+	TArray<ANodeGraph*> A_Star(ANodeGraph* start, ANodeGraph* goal);
 	
 public:
 	UPROPERTY(EditAnywhere)

@@ -33,14 +33,22 @@ void AMazePawn::Tick(float DeltaTime)
 	case AMazePawn::IDLE:
 		break;
 	case AMazePawn::PATH:
+		if (circuit.IsEmpty() && !queue.IsEmpty()) {
+			circuit = queue[0];
+			queue.RemoveAt(0);
+			index = 0;
+		}
+		else if(circuit.IsEmpty() && queue.IsEmpty()) {
+			state = IDLE;
+			break;
+		}
+
 		d = (circuit[index]->GetActorLocation() - GetActorLocation()).Length();
 		if (d <= SWITCH_DISTANCE) {
 			graph = circuit[index];
 			++index;
 			if (index == circuit.Num()) {
-				state = IDLE;
 				circuit.Empty();
-				index = 0;
 				break;
 			}
 		}
@@ -64,17 +72,17 @@ void AMazePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
-TArray<ANodeGraph*> AMazePawn::A_Star(ANodeGraph* goal) {
+TArray<ANodeGraph*> AMazePawn::A_Star(ANodeGraph* start, ANodeGraph* goal) {
 	TSet<ANodeGraph*> nextNodes;
-	nextNodes.Add(graph);
+	nextNodes.Add(start);
 
 	// distances form start to node n
 	TMap<ANodeGraph*, double> distances;
-	distances.Add(graph, 0);
+	distances.Add(start, 0);
 
 	// heuristique distance from start to end by node n;
 	TMap<ANodeGraph*, double> hdistances;
-	hdistances.Add(graph, (goal->GetActorLocation() - graph->GetActorLocation()).Length());
+	hdistances.Add(start, (goal->GetActorLocation() - start->GetActorLocation()).Length());
 
 	TMap<ANodeGraph*, ANodeGraph*> path;
 	TArray<ANodeGraph*> res;
@@ -124,13 +132,15 @@ TArray<ANodeGraph*> AMazePawn::A_Star(ANodeGraph* goal) {
 
 
 void AMazePawn::MoveToNode(ANodeGraph* goal) {
-	if (state == IDLE) {
-		circuit = A_Star(goal);
-		state = PATH;
-		index = 0;
+	if (!queue.IsEmpty()) {
+		queue.Add(A_Star(queue.Last().Last(), goal));
 	}
-
-	if (circuit.IsEmpty()) {
-		state = IDLE;
+	else if(!circuit.IsEmpty())
+	{
+		queue.Add(A_Star(circuit.Last(), goal));
+	}
+	else {
+		queue.Add(A_Star(graph, goal));
+		state = PATH;
 	}
 }
