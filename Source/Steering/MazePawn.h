@@ -12,6 +12,13 @@ UCLASS(Blueprintable)
 class STEERING_API AMazePawn : public APawn
 {
 	GENERATED_BODY()
+private:
+	const double SWITCH_DISTANCE = 5;
+
+	enum State { IDLE, PATH };
+	State state;
+	TArray<ANodeGraph*> circuit;
+	int index;
 
 	TArray<ANodeGraph*> A_Star(ANodeGraph* goal);
 	
@@ -36,5 +43,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(BlueprintCallable)
 	void MoveToNode(ANodeGraph* goal);
 };

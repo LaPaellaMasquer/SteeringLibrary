@@ -8,8 +8,11 @@ AMazePawn::AMazePawn()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
 	steerComp = CreateDefaultSubobject<USteerComponent>("SteerComponent");
 	AddOwnedComponent(steerComp);
+
+	state = IDLE;
 }
 
 // Called when the game starts or when spawned
@@ -24,6 +27,34 @@ void AMazePawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	double d;
+	switch (state)
+	{
+	case AMazePawn::IDLE:
+		break;
+	case AMazePawn::PATH:
+		d = (circuit[index]->GetActorLocation() - GetActorLocation()).Length();
+		if (d <= SWITCH_DISTANCE) {
+			graph = circuit[index];
+			++index;
+			if (index == circuit.Num()) {
+				state = IDLE;
+				circuit.Empty();
+				index = 0;
+				break;
+			}
+		}
+		SetActorLocation(steerComp->Seek(GetActorLocation(), circuit[index]->GetActorLocation()), false);
+		break;
+	default:
+		break;
+	}
+
+	if (state != IDLE) {
+		FVector new_forward = steerComp->GetVelocity();
+		new_forward.Normalize();
+		SetActorRotation(new_forward.Rotation());
+	}
 }
 
 // Called to bind functionality to input
@@ -34,44 +65,72 @@ void AMazePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 }
 
 TArray<ANodeGraph*> AMazePawn::A_Star(ANodeGraph* goal) {
-	TArray<ANodeGraph*> nextNodes;
-	nextNodes.add(graph);
+	TSet<ANodeGraph*> nextNodes;
+	nextNodes.Add(graph);
 
-	TMap<NodeGraph*, double> distances;
-	distances[graph] = 0;
+	// distances form start to node n
+	TMap<ANodeGraph*, double> distances;
+	distances.Add(graph, 0);
 
-	TMap<NodeGraph*, NodeGraph*> path;
+	// heuristique distance from start to end by node n;
+	TMap<ANodeGraph*, double> hdistances;
+	hdistances.Add(graph, (goal->GetActorLocation() - graph->GetActorLocation()).Length());
+
+	TMap<ANodeGraph*, ANodeGraph*> path;
 	TArray<ANodeGraph*> res;
+	while (!nextNodes.IsEmpty()) {
+		ANodeGraph* current = nullptr;
 
-	while (nextNodes.Num()!=0) {
-		NodeGraph* current;
-		// get the node with the minimum distances
-		for (auto& e : distances) {
-			current = e.Key;
-			break;
+		// get the node with the minimum heuristic distance
+		double min = INFINITY;
+		for (auto& n : nextNodes) {
+			if (hdistances[n] < min) {
+				current = n;
+				min = hdistances[n];
+			}
 		}
 
 		if (current == goal) {
-			res.add(current);
-			for (NodeGraph* n : path) {
-				res.Insert(n, 0);
+			res.Add(current);
+			while (path.Contains(current))
+			{
+				current = path[current];
+				res.Insert(current, 0);
 			}
 			return res;
 		}
 
-		nextNodes.Remmove(current);
+		nextNodes.Remove(current);
+		for (ANodeGraph* n : current->Neighbours) {
+			double distance = distances[current] + (n->GetActorLocation() - current->GetActorLocation()).Length();
+			bool isAlreadySaw = distances.Contains(n);
 
-		for (NodeGraph* n : current->Neighbours) {
-			distance = distances[current] + (n->GetActorLocation() - current->GetActorLocation()).Length();
-			if (!distances.Contains(n) || (distances.Contains(n) && distance < disances[n])) {
-				distances[n] = distance
-					path[n] = current;
+			if (!isAlreadySaw) {
+				path.Add(n, current);
+				distances.Add(n, distance);
+				hdistances.Add(n, distance + (goal->GetActorLocation() - n->GetActorLocation()).Length());
+				nextNodes.Add(n);
 			}
-			distancesValueSort([](const double& A, const double& B) {
-				return A < B;
-			});
-			nextNodes.addUUnique(n);
+			else if (distance < distances[n]) {
+				path[n] = current;
+				distances[n] = distance;
+				hdistances[n] = distance + (goal->GetActorLocation() - n->GetActorLocation()).Length();
+				nextNodes.Add(n);
+			}
 		}
 	}
 	return res;
+}
+
+
+void AMazePawn::MoveToNode(ANodeGraph* goal) {
+	if (state == IDLE) {
+		circuit = A_Star(goal);
+		state = PATH;
+		index = 0;
+	}
+
+	if (circuit.IsEmpty()) {
+		state = IDLE;
+	}
 }
