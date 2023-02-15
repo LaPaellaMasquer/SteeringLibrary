@@ -15,7 +15,7 @@ class STEERING_API AMazePawn : public APawn
 private:
 	const double SWITCH_DISTANCE = 5;
 
-	enum State { IDLE, PATH };
+	enum State { IDLE, PATH, CIRCUIT };
 	State state;
 
 	TArray<ANodeGraph*> circuit;
@@ -47,4 +47,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void MoveToNode(ANodeGraph* goal);
+
+	UFUNCTION(BlueprintCallable)
+	void CreateCircuit(ANodeGraph* goal);
 };

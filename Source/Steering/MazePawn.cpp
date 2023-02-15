@@ -28,19 +28,16 @@ void AMazePawn::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	double d;
-	switch (state)
-	{
-	case AMazePawn::IDLE:
-		break;
-	case AMazePawn::PATH:
+	if (state != IDLE) {
+
 		if (circuit.IsEmpty() && !queue.IsEmpty()) {
 			circuit = queue[0];
 			queue.RemoveAt(0);
 			index = 0;
 		}
-		else if(circuit.IsEmpty() && queue.IsEmpty()) {
+		else if (circuit.IsEmpty() && queue.IsEmpty()) {
 			state = IDLE;
-			break;
+			return;
 		}
 
 		d = (circuit[index]->GetActorLocation() - GetActorLocation()).Length();
@@ -49,13 +46,10 @@ void AMazePawn::Tick(float DeltaTime)
 			++index;
 			if (index == circuit.Num()) {
 				circuit.Empty();
-				break;
+				return;
 			}
 		}
 		SetActorLocation(steerComp->Seek(GetActorLocation(), circuit[index]->GetActorLocation()), false);
-		break;
-	default:
-		break;
 	}
 
 	if (state != IDLE) {
@@ -142,5 +136,35 @@ void AMazePawn::MoveToNode(ANodeGraph* goal) {
 	else {
 		queue.Add(A_Star(graph, goal));
 		state = PATH;
+	}
+}
+
+void AMazePawn::CreateCircuit(ANodeGraph* goal)
+{
+	if (state == PATH) {
+		return;
+	}
+
+	if (!queue.IsEmpty()) {
+		ANodeGraph* start = queue.Last().Last();
+		if (queue.Num() != 1) {
+			queue.Add(A_Star(queue.Last(1).Last(), goal));
+		}
+		else {
+			queue.Add(A_Star(circuit.Last(), goal));
+		}
+		queue.Add(A_Star(goal, start));
+		queue.RemoveAt(queue.Num()-3);
+	}
+	else if (!circuit.IsEmpty())
+	{
+		ANodeGraph* start = circuit.Last();
+		queue.Add(A_Star(start, goal));
+		queue.Add(A_Star(goal, start));
+	}
+	else {
+		queue.Add(A_Star(graph, goal));
+		queue.Add(A_Star(goal, graph));
+		state = CIRCUIT;
 	}
 }
